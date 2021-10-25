@@ -4,6 +4,8 @@
 
 #include "songs.h"
 
+#define PRINT_FREES
+
 struct song_node * insert_front(struct song_node * head, char *artist, char *name) {
     struct song_node *result = malloc(sizeof(struct song_node));
     
@@ -32,14 +34,27 @@ void print_list(struct song_node *head) {
 	printf("\n");
 }
 
+struct song_node * free_node(struct song_node *head) {
+	struct song_node *next = head->next;
+#ifdef PRINT_FREES
+	printf("free_node - ");
+	println_node(head);
+#endif
+	free(head);
+	return next;
+}
+
 struct song_node * free_list(struct song_node *head) {
-	struct song_node *next;
-	if (head) do {
-		next = head->next;
-		//printf("freeing node: ");
-		//println_node(head);
-		free(head);
-	} while (head = next);
+	if (head) 
+		while (head = free_node(head));
+	return head;
+	// struct song_node *next;
+	// if (head) do {
+	// 	next = head->next;
+	// 	//printf("freeing node: ");
+	// 	//println_node(head);
+	// 	free(head);
+	// } while (head = next);
 }
 
 struct song_node * insert_ordered(struct song_node *head, struct song_node *to_insert) {
@@ -78,20 +93,25 @@ struct song_node * remove_song(struct song_node *head, char *artist, char *name)
 	if (!head) return 0;
 	if (!strncasecmp(head->artist, artist, NAME_LEN)
 		&& !strncasecmp(head->name, name, NAME_LEN)) {
-			struct song_node *next = head->next;
-			free(head);
-			return next;
+			return free_node(head);
 	} else {
 		head->next = remove_song(head->next, artist, name);
 	}
 	return head;
 }
 
-struct song_node * random_song(struct song_node *head) {
-    struct song_node *result = 0;
-    int i;
-    for (i = 1; head; i++, head = head->next) {
-        if (!(rand() % i)) result = head;
-    }
-    return result;
+struct random_result random_song_from(struct song_node *head, struct random_result prev) {
+	for (; head; head = head->next) {
+		if (!(rand() % ++prev.i)) prev.result = head;
+	}
+	return prev;
 }
+
+// struct song_node * random_song(struct song_node *head) {
+//     struct song_node *result = 0;
+//     int i;
+//     for (i = 1; head; i++, head = head->next) {
+//         if (!(rand() % i)) result = head;
+//     }
+//     return result;
+// }
